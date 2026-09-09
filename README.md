@@ -1,18 +1,16 @@
 # Unity Game Development Template (C#)
 
-A batteries-included Unity project template for building state-driven mobile games. It wires together
-dependency injection, a typed event bus, an async state machine, Addressables-driven UI, and a
-versioned save system so a new game can start from a working vertical slice instead of an empty scene.
+A batteries-included Unity project template for building state-driven mobile games. It wires together dependency injection, a typed event bus, an async state machine, Addressables-driven UI, and a versioned save system so a new game can start from a working vertical slice instead of an empty scene.
 
 ## Architecture: Model – View – State
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│ GameLifetimeScope (VContainer root)  ── DontDestroyOnLoad   │
-│   ├─ GameEntry                    (di bootstrap)            │
-│   ├─ SoundService / LoadingCurtain (serialized instances)   │
-│   ├─ all IGlobalService services   (reflection-registered)  │
-│   └─ all IState states             (reflection-registered)  │
+│ GameLifetimeScope (VContainer root)  ── DontDestroyOnLoad  │
+│   ├─ GameEntry                    (di bootstrap)           │
+│   ├─ SoundService / LoadingCurtain (serialized instances)  │
+│   ├─ all IGlobalService services   (reflection-registered) │
+│   └─ all IState states             (reflection-registered) │
 └────────────────────────────────────────────────────────────┘
         │  StateFactory.CreateAllStates() → StateMachine
         ▼
@@ -64,23 +62,14 @@ the `SoundId` enum. See the full checklist in `docs/` / the Obsidian project not
 
 Deliberate trade-offs in this template — reviewed so a reader knows they are intentional, not bugs.
 
-- **Save storage is plaintext `PlayerPrefs`.** Simple and zero-dependency. For a shipped mobile title with real
-  economy, replace with an encrypted/cloud save (or `Application.persistentDataPath` + a signing/encryption layer).
-  The `ISaveLoad` abstraction isolates that swap to one class.
-- **Save schema is forward-tolerant, not backward-migrating.** A version bump (`SaveLoad.SaveVersion`) resets the
-  save rather than migrating old data. Add migration logic when a live install base exists.
-- **Views are created and destroyed on every state entry/exit.** Trade-off favoring memory predictability over
-  reuse (each screen is rebuilt fresh). Addressables instances self-release on destroy, so this is memory-safe.
-- **Addressables assets are keyed by C# type name** (e.g. `typeof(MainView).Name`). Fast for a solo/AR team, but
-  brittle if you rename a class — keep prefab addresses in sync. Consider centralized address constants for larger teams.
-- **`CleanUp()` releases all cached loads at a scene boundary.** Correct for scene switching, but flushes the
-  load cache on every `SceneManager.LoadSceneAsync`. If a game reuses many assets across scenes, add ref-counting.
-- **`StateFactory` keys states by concrete type via reflection.** Adding a state costs nothing; the trade-off is a
-  scan on registration. `TypeExtensions` caches the reflection result; call `ClearCache()` if you add code in play mode.
-- **UI adaptation targets iPhone/iPad** (`Scripts/Game/DeviceAdaptation`). Add Android-safe-area or tablet variants
-  for other targets.
-- **No addressables per-preference asset packing / build optimization** is preconfigured. Set group layouts per
-  platform before release.
+- **Save storage is plaintext `PlayerPrefs`.** Simple and zero-dependency. For a shipped mobile title with real economy, replace with an encrypted/cloud save (or `Application.persistentDataPath` + a signing/encryption layer). The `ISaveLoad` abstraction isolates that swap to one class.
+- **Save schema is forward-tolerant, not backward-migrating.** A version bump (`SaveLoad.SaveVersion`) resets the save rather than migrating old data. Add migration logic when a live install base exists.
+- **Views are created and destroyed on every state entry/exit.** Trade-off favoring memory predictability over reuse (each screen is rebuilt fresh). Addressables instances self-release on destroy, so this is memory-safe.
+- **Addressables assets are keyed by C# type name** (e.g. `typeof(MainView).Name`). Fast for a solo/AR team, but brittle if you rename a class — keep prefab addresses in sync. Consider centralized address constants for larger teams.
+- **`CleanUp()` releases all cached loads at a scene boundary.** Correct for scene switching, but flushes the load cache on every `SceneManager.LoadSceneAsync`. If a game reuses many assets across scenes, add ref-counting.
+- **`StateFactory` keys states by concrete type via reflection.** Adding a state costs nothing; the trade-off is a scan on registration. `TypeExtensions` caches the reflection result; call `ClearCache()` if you add code in play mode.
+- **UI adaptation targets iPhone/iPad** (`Scripts/Game/DeviceAdaptation`). Add Android-safe-area or tablet variants for other targets.
+- **No addressables per-preference asset packing / build optimization** is preconfigured. Set group layouts per platform before release.
 
 ## Requirements
 
